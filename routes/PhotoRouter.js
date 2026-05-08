@@ -1,0 +1,41 @@
+const express = require("express");
+const Photo = require("../db/photoModel");
+const User = require("../db/userModel");
+const router = express.Router();
+
+// GET /photosOfUser/:id
+router.get("/photosOfUser/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(400).send("Invalid user id");
+    }
+
+    const photos = await Photo.find({ user_id: req.params.id })
+      .select("_id user_id file_name date_time comments")
+      .populate({
+        path: "comments.user_id",
+        select: "_id first_name last_name",
+      });
+
+    const result = photos.map((p) => ({
+      _id: p._id,
+      user_id: p.user_id,
+      file_name: p.file_name,
+      date_time: p.date_time,
+      comments: p.comments.map((c) => ({
+        _id: c._id,
+        comment: c.comment,
+        date_time: c.date_time,
+        user: c.user_id,
+      })),
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
+module.exports = router;
