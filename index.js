@@ -7,6 +7,8 @@ const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
 const CommentRouter = require("./routes/CommentRouter");
 
+const User = require("./db/userModel");
+
 app.use(
   session({
     secret: "photo-app-secret",
@@ -14,10 +16,15 @@ app.use(
     saveUninitialized: false,
   })
 );
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
 dbConnect();
 
-app.use(cors());
 app.use(express.json());
 app.use("/api/user", UserRouter);
 app.use("/api/photo", PhotoRouter);
@@ -26,13 +33,13 @@ app.get("/", (request, response) => {
   response.send({ message: "Hello from photo-sharing app API!" });
 });
 
-app.post("/api/login", async (request, reponse) => {
+app.post("/api/admin/login", async (request, reponse) => {
   try {
     const loginName = request.body.login_name;
     if (!loginName) {
       return reponse.status(400).json("Missing login name");
     }
-    const user = User.findOne({ login_name: loginName });
+    const user = await User.findOne({ login_name: loginName });
     if (!user) {
       return reponse.status(400).json("Wrong login name");
     }
@@ -50,12 +57,15 @@ app.post("/api/login", async (request, reponse) => {
   }
 });
 
-app.post("/api/logout", async (request, reponse) => {
+app.post("/api/admin/logout", async (request, reponse) => {
+  if (!request.session.user) {
+    reponse.status(400).json({ message: "Not logged in" });
+  }
   request.session.destroy((err) => {
     if (err) {
-      reponse.status(500).send("error logout");
+      return reponse.status(500).json({ message: "error logout" });
     }
-    reponse.status(200).send("logout success");
+    return reponse.status(200).json({ message: "logout success" });
   });
 });
 
