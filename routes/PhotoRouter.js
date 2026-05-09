@@ -1,14 +1,29 @@
 const express = require("express");
 const Photo = require("../db/photoModel");
 const User = require("../db/userModel");
+
 const router = express.Router();
 
+// Middleware kiểm tra đăng nhập
+function requireAuth(req, res, next) {
+  if (!req.session.user) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+
+  next();
+}
+
 // GET /photosOfUser/:id
-router.get("/photosOfUser/:id", async (req, res) => {
+router.get("/photosOfUser/:id", requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
+
     if (!user) {
-      return res.status(400).send("Invalid user id");
+      return res.status(404).json({
+        message: "Invalid user id",
+      });
     }
 
     const photos = await Photo.find({ user_id: req.params.id })
@@ -31,10 +46,13 @@ router.get("/photosOfUser/:id", async (req, res) => {
       })),
     }));
 
-    res.json(result);
+    return res.json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).send(err.message);
+
+    return res.status(500).json({
+      message: err.message,
+    });
   }
 });
 

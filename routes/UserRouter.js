@@ -1,19 +1,34 @@
 const express = require("express");
 const User = require("../db/userModel");
+
 const router = express.Router();
 
-// GET /api/list
-router.get("/list", async (req, res) => {
+// Middleware kiểm tra đăng nhập
+function requireAuth(req, res, next) {
+  if (!req.session.user) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+
+  next();
+}
+
+// GET /api/user/list
+router.get("/list", requireAuth, async (req, res) => {
   try {
     const users = await User.find({}, "_id first_name last_name");
-    res.json(users);
+
+    return res.json(users);
   } catch (err) {
-    res.status(500).send(err.message);
+    return res.status(500).json({
+      message: err.message,
+    });
   }
 });
 
-// GET /api/:id
-router.get("/:id", async (req, res) => {
+// GET /api/user/:id
+router.get("/:id", requireAuth, async (req, res) => {
   try {
     const user = await User.findById(
       req.params.id,
@@ -21,12 +36,16 @@ router.get("/:id", async (req, res) => {
     );
 
     if (!user) {
-      return res.status(400).send("Invalid user id");
+      return res.status(404).json({
+        message: "Invalid user id",
+      });
     }
 
-    res.json(user);
+    return res.json(user);
   } catch (err) {
-    res.status(400).send("Invalid user id");
+    return res.status(400).json({
+      message: "Invalid user id",
+    });
   }
 });
 
