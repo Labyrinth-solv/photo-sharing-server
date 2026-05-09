@@ -95,7 +95,9 @@ app.post("/api/admin/logout", (req, res) => {
       });
     }
 
-    return res.send("success");
+    return res.json({
+      message: "Logout success",
+    });
   });
 });
 
