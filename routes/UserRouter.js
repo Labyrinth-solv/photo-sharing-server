@@ -3,6 +3,13 @@ const User = require("../db/userModel");
 const router = express.Router();
 
 // GET /api/list
+function requireAuth(request, reponse, next) {
+  if (!request.session.user) {
+    reponse.status(401).send("Unauthorized");
+  }
+  next();
+}
+
 router.get("/list", async (req, res) => {
   try {
     const users = await User.find({}, "_id first_name last_name");
@@ -29,5 +36,6 @@ router.get("/:id", async (req, res) => {
     res.status(400).send("Invalid user id");
   }
 });
+
 
 module.exports = router;
