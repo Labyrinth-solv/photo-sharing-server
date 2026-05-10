@@ -6,25 +6,26 @@ const dbConnect = require("./db/dbConnect");
 
 const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
-
+const CommentRouter = require("./routes/CommentRouter");
+ 
 const User = require("./db/userModel");
 
 const app = express();
 app.use(
   cors({
-    origin: "https://kqkjsq-3000.csb.app",
+    origin: true,
     credentials: true,
   })
 );
+app.options("*", cors());
 
 app.use(
   session({
-    secret: "secret",
+    secret: "your_secret_key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
-      sameSite: "lax",
+      httpOnly: true,
     },
   })
 );
@@ -32,12 +33,12 @@ app.use(
 dbConnect();
 
 // Middleware
-app.options("*", cors());
 app.use(express.json());
 
 // Routes
 app.use("/api/user", UserRouter);
 app.use("/api/photo", PhotoRouter);
+app.use("/api/comment", PhotoRouter);
 
 // Test API
 app.get("/", (req, res) => {
@@ -65,7 +66,7 @@ app.post("/api/admin/login", async (req, res) => {
       });
     }
 
-    req.session.userID = {
+    req.session.user = {
       _id: user._id,
       first_name: user.first_name,
     };

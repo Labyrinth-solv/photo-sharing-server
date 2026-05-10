@@ -1,11 +1,11 @@
 const express = require("express");
 const User = require("../db/userModel");
-
+const session = require("express-session");
 const router = express.Router();
 
 // Middleware kiểm tra đăng nhập
 function requireAuth(req, res, next) {
-  if (!req.session.userID) {
+  if (!req.session.user) {
     return res.status(401).json({
       message: "Unauthorized",
     });
