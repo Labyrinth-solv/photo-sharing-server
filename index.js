@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
-
+const path = require("path");
 const dbConnect = require("./db/dbConnect");
 
 const UserRouter = require("./routes/UserRouter");
@@ -10,7 +10,13 @@ const CommentRouter = require("./routes/CommentRouter");
  
 const User = require("./db/userModel");
 
+
+
 const app = express();
+
+// Middleware
+app.use(express.json());
+
 app.use(
   cors({
     origin: true,
@@ -32,13 +38,14 @@ app.use(
 // Connect database
 dbConnect();
 
-// Middleware
-app.use(express.json());
 
 // Routes
 app.use("/api/user", UserRouter);
 app.use("/api/photo", PhotoRouter);
-app.use("/api/comment", PhotoRouter);
+app.use("/api/comment", CommentRouter);
+
+//Config serve anh
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 // Test API
 app.get("/", (req, res) => {
@@ -50,7 +57,7 @@ app.get("/", (req, res) => {
 // Login
 app.post("/api/admin/login", async (req, res) => {
   try {
-    const { login_name } = req.body;
+    const { login_name,password } = req.body;
 
     if (!login_name) {
       return res.status(400).json({
@@ -62,10 +69,14 @@ app.post("/api/admin/login", async (req, res) => {
 
     if (!user) {
       return res.status(400).json({
-        message: "Wrong login name",
+        message: "user don't exist",
       });
     }
-
+    if (password!=user.password) {
+      return res.status(400).json({
+        message: "Wrong password",
+      });
+    }
     req.session.user = {
       _id: user._id,
       first_name: user.first_name,

@@ -14,15 +14,10 @@ function requireAuth(req, res, next) {
   next();
 }
 
-router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
+router.post("/commentsOfPhoto/:photo_id", requireAuth, async (req, res) => {
     try {
       const { comment } = req.body;
       const user = req.session.user;
-  
-      // 1. check login
-      if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
   
       // 2. check empty comment
       if (!comment || comment.trim() === "") {
@@ -49,3 +44,5 @@ router.post("/commentsOfPhoto/:photo_id", async (req, res) => {
       return res.status(500).json({ message: err.message });
     }
   });
+
+  module.exports=router;
