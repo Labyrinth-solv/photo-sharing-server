@@ -7,10 +7,8 @@ const dbConnect = require("./db/dbConnect");
 const UserRouter = require("./routes/UserRouter");
 const PhotoRouter = require("./routes/PhotoRouter");
 const CommentRouter = require("./routes/CommentRouter");
- 
+
 const User = require("./db/userModel");
-
-
 
 const app = express();
 
@@ -24,7 +22,7 @@ app.use(
   })
 );
 app.options("*", cors());
-
+app.set("trust proxy", 1);
 app.use(
   session({
     secret: "your_secret_key",
@@ -32,12 +30,13 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
+      sameSite: "none",
+      secure: true,
     },
   })
 );
 // Connect database
 dbConnect();
-
 
 // Routes
 app.use("/api/user", UserRouter);
@@ -57,7 +56,8 @@ app.get("/", (req, res) => {
 // Login
 app.post("/api/admin/login", async (req, res) => {
   try {
-    const { login_name,password } = req.body;
+    console.log("👉 LOGIN HIT");
+    const { login_name, password } = req.body;
 
     if (!login_name) {
       return res.status(400).json({
@@ -72,7 +72,7 @@ app.post("/api/admin/login", async (req, res) => {
         message: "user don't exist",
       });
     }
-    if (password!=user.password) {
+    if (password != user.password) {
       return res.status(400).json({
         message: "Wrong password",
       });
@@ -81,6 +81,7 @@ app.post("/api/admin/login", async (req, res) => {
       _id: user._id,
       first_name: user.first_name,
     };
+    console.log("SESSION AFTER LOGIN:", req.session);
 
     return res.json({
       _id: user._id,
