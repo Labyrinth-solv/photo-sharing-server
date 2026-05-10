@@ -10,27 +10,30 @@ const PhotoRouter = require("./routes/PhotoRouter");
 const User = require("./db/userModel");
 
 const app = express();
-
-// Connect database
-dbConnect();
-
-// Middleware
-app.use(express.json());
-
 app.use(
   cors({
-    origin: true,
+    origin: "https://kqkjsq-3000.csb.app",
     credentials: true,
   })
 );
 
 app.use(
   session({
-    secret: "photo-app-secret",
+    secret: "secret",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: false,
+      sameSite: "lax",
+    },
   })
 );
+// Connect database
+dbConnect();
+
+// Middleware
+app.options("*", cors());
+app.use(express.json());
 
 // Routes
 app.use("/api/user", UserRouter);
@@ -62,7 +65,7 @@ app.post("/api/admin/login", async (req, res) => {
       });
     }
 
-    req.session.user = {
+    req.session.userID = {
       _id: user._id,
       first_name: user.first_name,
     };
@@ -73,10 +76,6 @@ app.post("/api/admin/login", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-
-    return res.status(500).json({
-      message: "Server error",
-    });
   }
 });
 
@@ -94,7 +93,7 @@ app.post("/api/admin/logout", (req, res) => {
         message: "Logout failed",
       });
     }
-
+    console.log("log out call");
     return res.json({
       message: "Logout success",
     });
