@@ -56,7 +56,6 @@ app.get("/", (req, res) => {
 // Login
 app.post("/api/admin/login", async (req, res) => {
   try {
-    console.log("👉 LOGIN HIT");
     const { login_name, password } = req.body;
 
     if (!login_name) {
@@ -81,7 +80,6 @@ app.post("/api/admin/login", async (req, res) => {
       _id: user._id,
       first_name: user.first_name,
     };
-    console.log("SESSION AFTER LOGIN:", req.session);
 
     return res.json({
       _id: user._id,
